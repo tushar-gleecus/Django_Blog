@@ -2,13 +2,13 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# Looking to send emails in production? Check out our Email API/SMTP product!
 EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
 EMAIL_HOST_USER = 'bb5886d4430d8b'
-EMAIL_HOST_PASSWORD = '****8cdd'
-EMAIL_PORT = '2525'
+EMAIL_HOST_PASSWORD = '6d65d7a82f8cdd'
+EMAIL_PORT = 2525        # <--- No quotes, must be an integer
 EMAIL_USE_TLS = True     # <--- This is also needed for Mailtrap
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
 
 
 DEBUG = True
