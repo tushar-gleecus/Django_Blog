@@ -1,61 +1,20 @@
-{% load static %}
-<!-- templates/accounts/login.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Login / Signup</title>
-  <link rel="stylesheet" href="{% static 'accounts/style.css' %}">
-</head>
-<body>
-  <div class="wrapper">
-    <div class="title-text">
-      <div class="title login">Login Form</div>
-      <div class="title signup">Signup Form</div>
-    </div>
-    <div class="form-container">
-      <div class="slide-controls">
-        <input type="radio" name="slide" id="login" checked>
-        <input type="radio" name="slide" id="signup">
-        <label for="login" class="slide login">Login</label>
-        <label for="signup" class="slide signup">Signup</label>
-        <div class="slider-tab"></div>
-      </div>
-      <div class="form-inner">
-        <form action="{% url 'accounts:login' %}" method="post" class="login">
-          {% csrf_token %}
-          <div class="field">
-            <input type="text" name="email" placeholder="Email Address" required>
-          </div>
-          <div class="field">
-            <input type="password" name="password" placeholder="Password" required>
-          </div>
-          <div class="pass-link"><a href="#">Forgot password?</a></div>
-          <div class="field btn">
-            <div class="btn-layer"></div>
-            <input type="submit" value="Login">
-          </div>
-          <div class="signup-link">Not a member? <a href="#">Signup now</a></div>
-        </form>
-        <form action="{% url 'accounts:register' %}" method="post" class="signup">
-          {% csrf_token %}
-          <div class="field">
-            <input type="text" name="email" placeholder="Email Address" required>
-          </div>
-          <div class="field">
-            <input type="password" name="password1" placeholder="Password" required>
-          </div>
-          <div class="field">
-            <input type="password" name="password2" placeholder="Confirm password" required>
-          </div>
-          <div class="field btn">
-            <div class="btn-layer"></div>
-            <input type="submit" value="Signup">
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  <script src="{% static 'accounts/script.js' %}"></script>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<div class="flex justify-center items-center min-h-screen bg-gray-100">
+  <form method="post" class="bg-white p-8 rounded shadow-lg w-full max-w-sm">
+    {% csrf_token %}
+    <h2 class="text-2xl font-bold mb-6">Login</h2>
+    {% if messages %}
+      <ul>
+      {% for message in messages %}
+        <li class="text-red-500">{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+    <input type="text" name="email" placeholder="Email" required class="border px-3 py-2 rounded w-full mb-4">
+    <input type="password" name="password" placeholder="Password" required class="border px-3 py-2 rounded w-full mb-4">
+    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">Login</button>
+    <div class="mt-4 text-center">Don't have an account? <a href="{% url 'accounts:register' %}" class="text-blue-600">Register</a></div>
+  </form>
+</div>
+{% endblock %}

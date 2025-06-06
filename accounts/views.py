@@ -1,125 +1,65 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 from django.contrib.auth.models import User
-from django.contrib import messages, auth
-from django.core.mail import send_mail
-from django.utils import timezone
-from .models import OTP
-from .forms import RegisterForm, LoginForm, OTPForm
-import random
 
-def generate_otp():
-    return f"{random.randint(100000, 999999)}"
+# Dummy OTP system for demo!
+def send_otp_to_email(email, otp):
+    print(f"Send OTP {otp} to {email}")
 
 def register(request):
     if request.method == 'POST':
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            if User.objects.filter(email=email).exists():
-                messages.error(request, 'Email already registered.')
-            else:
-                user = User.objects.create_user(
-                    username=email, email=email, 
-                    password=form.cleaned_data['password'],
-                    first_name=form.cleaned_data['name']
-                )
-                user.is_active = False  # Require OTP validation
-                user.save()
-                otp_code = generate_otp()
-                OTP.objects.create(user=user, code=otp_code)
-                send_mail(
-                    "Your OTP Code",
-                    f"Your OTP code is {otp_code}",
-                    None,
-                    [email],
-                    fail_silently=False,
-                )
-                request.session['pending_user'] = user.id
-                return redirect('otp_verify')
-        else:
-            messages.error(request, 'Please fix errors below.')
-    else:
-        form = RegisterForm()
-    return render(request, 'accounts/register.html', {'form': form})
-
-def otp_verify(request):
-    pending_user_id = request.session.get('pending_user')
-    if not pending_user_id:
-        return redirect('register')
-    user = User.objects.get(id=pending_user_id)
-    if request.method == 'POST':
-        form = OTPForm(request.POST)
-        if form.is_valid():
-            otp_code = form.cleaned_data['otp']
-            try:
-                otp_obj = OTP.objects.filter(user=user, code=otp_code, is_used=False).latest('created_at')
-                if (timezone.now() - otp_obj.created_at).seconds > 600:  # 10 min expiry
-                    messages.error(request, 'OTP expired. Please register again.')
-                    user.delete()
-                    return redirect('register')
-                otp_obj.is_used = True
-                otp_obj.save()
-                user.is_active = True
-                user.save()
-                auth.login(request, user)
-                del request.session['pending_user']
-                return redirect('homepage')
-            except OTP.DoesNotExist:
-                messages.error(request, 'Invalid OTP.')
-    else:
-        form = OTPForm()
-    return render(request, 'accounts/otp_verify.html', {'form': form})
+        name = request.POST['name']
+        email = request.POST['email']
+        phone = request.POST['phone']
+        password = request.POST['password']
+        if User.objects.filter(username=email).exists():
+            messages.error(request, 'Email already registered')
+            return render(request, 'accounts/register.html')
+        user = User.objects.create_user(username=email, email=email, password=password, first_name=name)
+        user.save()
+        # Set OTP in session
+        otp = '123456'
+        request.session['otp'] = otp
+        request.session['email'] = email
+        send_otp_to_email(email, otp)
+        return redirect('accounts:otp_verify')
+    return render(request, 'accounts/register.html')
 
 def login_view(request):
     if request.method == 'POST':
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            user = auth.authenticate(username=email, password=password)
-            if user:
-                otp_code = generate_otp()
-                OTP.objects.create(user=user, code=otp_code)
-                send_mail(
-                    "Your OTP Code",
-                    f"Your OTP code is {otp_code}",
-                    None,
-                    [email],
-                    fail_silently=False,
-                )
-                request.session['login_user'] = user.id
-                return redirect('login_otp')
-            else:
-                messages.error(request, 'Invalid email or password.')
-    else:
-        form = LoginForm()
-    return render(request, 'accounts/login.html', {'form': form})
-
-def login_otp(request):
-    user_id = request.session.get('login_user')
-    if not user_id:
-        return redirect('login')
-    user = User.objects.get(id=user_id)
-    if request.method == 'POST':
-        form = OTPForm(request.POST)
-        if form.is_valid():
-            otp_code = form.cleaned_data['otp']
-            try:
-                otp_obj = OTP.objects.filter(user=user, code=otp_code, is_used=False).latest('created_at')
-                if (timezone.now() - otp_obj.created_at).seconds > 600:
-                    messages.error(request, 'OTP expired. Please login again.')
-                    return redirect('login')
-                otp_obj.is_used = True
-                otp_obj.save()
-                auth.login(request, user)
-                del request.session['login_user']
-                return redirect('homepage')
-            except OTP.DoesNotExist:
-                messages.error(request, 'Invalid OTP.')
-    else:
-        form = OTPForm()
-    return render(request, 'accounts/otp_verify.html', {'form': form})
+        email = request.POST['email']
+        password = request.POST['password']
+        user = authenticate(request, username=email, password=password)
+        if user is not None:
+            # If OTP is required, redirect to verify
+            if not request.session.get('otp_verified'):
+                request.session['email'] = email
+                otp = '123456'
+                request.session['otp'] = otp
+                send_otp_to_email(email, otp)
+                return redirect('accounts:otp_verify')
+            login(request, user)
+            return redirect('homepage:home') # Change to your home url name
+        else:
+            messages.error(request, 'Invalid credentials')
+    return render(request, 'accounts/login.html')
 
 def logout_view(request):
-    auth.logout(request)
-    return redirect('login')
+    logout(request)
+    return redirect('accounts:login')
+
+def otp_verify(request):
+    if request.method == 'POST':
+        entered_otp = request.POST['otp']
+        real_otp = request.session.get('otp')
+        if entered_otp == real_otp:
+            request.session['otp_verified'] = True
+            email = request.session.get('email')
+            user = authenticate(request, username=email, password=request.POST.get('password', ''))
+            if user:
+                login(request, user)
+            return redirect('homepage:home') # Change to your home url name
+        else:
+            messages.error(request, 'Invalid OTP')
+    return render(request, 'accounts/otp_verify.html')

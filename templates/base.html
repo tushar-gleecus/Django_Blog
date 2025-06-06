@@ -1,34 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}MyPlatform{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <title>MyPlatform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
-    <!-- Header -->
-    <header class="flex items-center justify-between px-8 py-4 bg-white shadow-md">
-        <div class="flex items-center">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Django_logo.png" alt="Logo" class="h-10 w-10 mr-2">
-            <span class="text-2xl font-bold text-gray-800">MyPlatform</span>
-        </div>
-        <div>
-            {% if user.is_authenticated %}
-                <span class="text-gray-700 mr-4">Hello, {{ user.username }}</span>
-                <a href="{% url 'logout' %}" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 font-semibold">Logout</a>
-            {% else %}
-                <a href="{% url 'accounts:login' %}" class="bg-blue-500 text-white px-4 py-2 rounded mr-2 hover:bg-blue-600 font-semibold">Login</a>
-                <a href="{% url 'accounts:register' %}" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 font-semibold">Register</a>
-            {% endif %}
-        </div>
-    </header>
-    <main class="flex-grow">
-        {% block content %}{% endblock %}
-    </main>
-    <!-- Footer -->
-    <footer class="px-8 py-4 bg-white border-t text-center text-gray-500">
-        &copy; {{ year|default:2025 }} MyPlatform. All rights reserved.
-    </footer>
+<body>
+  <nav class="bg-white shadow p-4 flex justify-between">
+    <span class="font-bold text-2xl">MyPlatform</span>
+    <div>
+      {% if user.is_authenticated %}
+        <span>Hello, {{ user.username }}</span>
+        <a href="{% url 'accounts:logout' %}" class="ml-4 text-blue-600">Logout</a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}" class="text-blue-600 mr-4">Login</a>
+        <a href="{% url 'accounts:register' %}" class="text-blue-600">Register</a>
+      {% endif %}
+    </div>
+  </nav>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
 </body>
 </html>
