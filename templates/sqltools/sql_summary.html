@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex justify-center items-center h-screen">
+  <form method="post" enctype="multipart/form-data" class="bg-white p-8 rounded-xl shadow-xl">
+    {% csrf_token %}
+    <h2 class="text-xl font-bold mb-4">Upload SQL file</h2>
+    <input type="file" name="sqlfile" accept=".sql" required class="mb-4"><br>
+    <button class="bg-blue-500 text-white px-4 py-2 rounded" type="submit">Convert to CSV</button>
+  </form>
+</div>
+{% endblock %}

@@ -23,7 +23,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',   # your custom app
-    'homepage',   # your custom app
+    'homepage',  
+    'sqltools', # your custom app
 ]
 
 ROOT_URLCONF = 'my_homepage.urls'
